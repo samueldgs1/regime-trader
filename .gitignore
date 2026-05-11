@@ -1,0 +1,60 @@
+# ── Secrets ────────────────────────────────────────────────
+.env
+*.pem
+*.key
+
+# ── Python ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.installed.cfg
+*.cfg.bak
+
+# ── Virtual environments ────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Testing & coverage ─────────────────────────────────────
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ── Type checking ───────────────────────────────────────────
+.mypy_cache/
+
+# ── Logs & data ─────────────────────────────────────────────
+logs/*.log
+logs/*.jsonl
+logs/*.json
+logs/*.lock
+*.csv
+*.parquet
+*.feather
+*.pkl
+*.joblib
+*.h5
+
+# ── IDE ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Jupyter ─────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Streamlit ───────────────────────────────────────────────
+.streamlit/secrets.toml
