@@ -407,6 +407,21 @@ def run_live(components: dict, tickers: List[str]) -> None:
     )
     stream_thread.start()
 
+    # Heartbeat: keep current_state.json fresh even between bars
+    def _heartbeat() -> None:
+        while not _shutdown_event.is_set():
+            _shutdown_event.wait(timeout=30)
+            try:
+                regime_state = components.get("_last_regime_state")
+                risk_manager  = components["risk_manager"]
+                nav           = components.get("_last_nav", 0.0)
+                if regime_state is not None:
+                    _write_dashboard_state(regime_state, risk_manager, nav)
+            except Exception:
+                pass
+
+    threading.Thread(target=_heartbeat, daemon=True, name="heartbeat").start()
+
     logger.info("Market data stream started — waiting for bars…")
 
     try:
@@ -516,6 +531,8 @@ def on_bar(ticker: str, bar: dict, components: dict) -> None:
     )
 
     # 7b. Write dashboard state files (best-effort, never blocks trading)
+    components["_last_regime_state"] = regime_state
+    components["_last_nav"] = nav
     _write_dashboard_state(regime_state, risk_manager, nav)
     _write_price_history(ticker, bar_buffers, regime_state)
 
