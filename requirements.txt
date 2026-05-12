@@ -10,3 +10,4 @@ scikit-learn>=1.4
 scipy>=1.13
 anyio>=4.3
 structlog>=24.1
+psutil>=5.9

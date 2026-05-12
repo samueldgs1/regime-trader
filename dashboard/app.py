@@ -25,6 +25,8 @@ except Exception as _e:
     _IMPORTS_OK = False
 
 if _IMPORTS_OK:
+    import subprocess, signal, psutil  # noqa: E401
+
     # -----------------------------------------------------------------------
     # Path setup — make project root importable
     # -----------------------------------------------------------------------
@@ -37,6 +39,7 @@ if _IMPORTS_OK:
     _TRADES_FILE = _LOGS_DIR / "trade_log.jsonl"
     _PRICE_FILE  = _LOGS_DIR / "price_history.json"
     _HALT_FILE   = _LOGS_DIR / "TRADING_HALTED.lock"
+    _PID_FILE    = _LOGS_DIR / "bot.pid"
 
     # -----------------------------------------------------------------------
     # Regime colour palette
@@ -469,6 +472,41 @@ def build_regime_pie(df: pd.DataFrame) -> go.Figure:
 # UI section renderers
 # ===========================================================================
 
+def _bot_pid() -> int | None:
+    """Return bot PID if the process is alive, else None."""
+    if not _PID_FILE.exists():
+        return None
+    try:
+        pid = int(_PID_FILE.read_text().strip())
+        if psutil.pid_exists(pid):
+            p = psutil.Process(pid)
+            if p.status() != psutil.STATUS_ZOMBIE:
+                return pid
+    except Exception:
+        pass
+    _PID_FILE.unlink(missing_ok=True)
+    return None
+
+
+def _start_bot() -> None:
+    proc = subprocess.Popen(
+        ["python", str(_ROOT / "main.py")],
+        cwd=str(_ROOT),
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
+    )
+    _PID_FILE.write_text(str(proc.pid))
+
+
+def _stop_bot(pid: int) -> None:
+    try:
+        p = psutil.Process(pid)
+        p.terminate()
+        p.wait(timeout=5)
+    except Exception:
+        pass
+    _PID_FILE.unlink(missing_ok=True)
+
+
 def render_sidebar() -> dict:
     """Render sidebar controls and return settings dict."""
     st.sidebar.title("⚙️ Settings")
@@ -478,6 +516,23 @@ def render_sidebar() -> dict:
         format_func=lambda s: f"{s}s",
     )
     ticker = st.sidebar.text_input("Primary ticker", value="SPY").upper()
+
+    # --- Bot controls ---
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**Bot Controls**")
+    pid = _bot_pid()
+    if pid:
+        st.sidebar.success(f"🟢 Bot running (PID {pid})")
+        if st.sidebar.button("⏹ Stop Bot", type="primary", use_container_width=True):
+            _stop_bot(pid)
+            st.sidebar.warning("Bot stopped.")
+            st.rerun()
+    else:
+        st.sidebar.warning("🔴 Bot not running")
+        if st.sidebar.button("▶ Start Bot", type="primary", use_container_width=True):
+            _start_bot()
+            st.sidebar.success("Bot started!")
+            st.rerun()
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Regime Legend**")
@@ -491,7 +546,6 @@ def render_sidebar() -> dict:
             )
 
     st.sidebar.markdown("---")
-    demo_badge = ""
     # Check if running on real data
     _state = load_current_state()
     _port  = load_portfolio()
