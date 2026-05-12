@@ -6,7 +6,7 @@ from __future__ import annotations
 import streamlit as st
 import traceback as _tb
 
-st.set_page_config(page_title="Regime Trader", page_icon="ðŸ“ˆ", layout="wide")
+st.set_page_config(page_title="Regime Trader", page_icon="📈", layout="wide")
 
 try:
     import json, os, sys, time
@@ -26,7 +26,7 @@ except Exception as _e:
 
 if _IMPORTS_OK:
     # -----------------------------------------------------------------------
-    # Path setup â€” make project root importable
+    # Path setup — make project root importable
     # -----------------------------------------------------------------------
     _ROOT = Path(__file__).parent.parent
     if str(_ROOT) not in sys.path:
@@ -52,7 +52,7 @@ if _IMPORTS_OK:
         "unknown":      "#95a5a6",
     }
 
-    _CB_COLORS = {0: "ðŸŸ¢", 1: "ðŸŸ¡", 2: "ðŸŸ ", 3: "ðŸ”´"}
+    _CB_COLORS = {0: "🟢", 1: "🟡", 2: "🟠", 3: "🔴"}
     _CB_LABELS = {0: "NONE", 1: "REDUCE_SIZES", 2: "HALT_DAY", 3: "FULL_STOP"}
 
 # ---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ def _make_demo_price_history(ticker: str = "SPY", n_bars: int = 390) -> pd.DataF
     market_open = now.replace(hour=9, minute=30)
     timestamps = [market_open + timedelta(minutes=i) for i in range(n_bars)]
 
-    # Regime blocks â€” bull for most of the day, bear patch mid-day
+    # Regime blocks — bull for most of the day, bear patch mid-day
     regimes = (
         ["bull"] * 120 + ["neutral"] * 60 + ["bear"] * 80 + ["neutral"] * 50 + ["bull"] * 80
     )[:n_bars]
@@ -370,7 +370,7 @@ def build_price_regime_chart(df: pd.DataFrame, ticker: str) -> go.Figure:
     ))
 
     fig.update_layout(
-        title=dict(text=f"{ticker} â€” Price with Regime Overlay", font_size=14),
+        title=dict(text=f"{ticker} — Price with Regime Overlay", font_size=14),
         xaxis_rangeslider_visible=False,
         plot_bgcolor="#0e1117",
         paper_bgcolor="#0e1117",
@@ -471,7 +471,7 @@ def build_regime_pie(df: pd.DataFrame) -> go.Figure:
 
 def render_sidebar() -> dict:
     """Render sidebar controls and return settings dict."""
-    st.sidebar.title("âš™ï¸ Settings")
+    st.sidebar.title("⚙️ Settings")
 
     refresh_s = st.sidebar.selectbox(
         "Auto-refresh interval", [15, 30, 60, 120], index=1,
@@ -497,15 +497,15 @@ def render_sidebar() -> dict:
     _port  = load_portfolio()
     source = _port.get("_source", "demo")
     if source == "alpaca":
-        st.sidebar.success("ðŸŸ¢ Live â€” Alpaca connected")
+        st.sidebar.success("🟢 Live — Alpaca connected")
     elif source == "snapshot":
-        st.sidebar.warning("ðŸŸ¡ Snapshot â€” bot offline")
+        st.sidebar.warning("🟡 Snapshot — bot offline")
     else:
-        st.sidebar.info("ðŸ”µ Demo mode â€” no credentials")
+        st.sidebar.info("🔵 Demo mode — no credentials")
 
     halt = _HALT_FILE.exists()
     if halt:
-        st.sidebar.error("ðŸš¨ TRADING_HALTED.lock present")
+        st.sidebar.error("🚨 TRADING_HALTED.lock present")
 
     return {"refresh_s": refresh_s, "ticker": ticker}
 
@@ -518,13 +518,13 @@ def render_header(state: dict, source: str) -> None:
         age_s = (datetime.now(tz=timezone.utc) - dt).total_seconds()
         age_str = f"{int(age_s)}s ago" if age_s < 120 else f"{int(age_s/60)}m ago"
     except Exception:
-        age_str = "â€”"
+        age_str = "—"
 
-    source_badge = {"alpaca": "ðŸŸ¢ Live", "snapshot": "ðŸŸ¡ Snapshot", "demo": "ðŸ”µ Demo"}.get(source, "â€”")
+    source_badge = {"alpaca": "🟢 Live", "snapshot": "🟡 Snapshot", "demo": "🔵 Demo"}.get(source, "—")
 
     cols = st.columns([3, 1, 1])
     with cols[0]:
-        st.markdown("## ðŸ“ˆ Regime Trader Dashboard")
+        st.markdown("## 📈 Regime Trader Dashboard")
     with cols[1]:
         st.markdown(f"<div style='text-align:right;color:#8891b4;font-size:0.85rem;padding-top:14px'>"
                     f"Updated {age_str}</div>", unsafe_allow_html=True)
@@ -613,13 +613,13 @@ def render_top_row(state: dict, portfolio: dict) -> None:
     halt_exists = _HALT_FILE.exists()
 
     if halt_exists or cb_level >= 3:
-        risk_color, risk_label, risk_cls = "#e74c3c", "FULL STOP ðŸš¨", "risk-danger"
+        risk_color, risk_label, risk_cls = "#e74c3c", "FULL STOP 🚨", "risk-danger"
     elif cb_level == 2:
-        risk_color, risk_label, risk_cls = "#e67e22", "HALT DAY ðŸŸ ", "risk-danger"
+        risk_color, risk_label, risk_cls = "#e67e22", "HALT DAY 🟠", "risk-danger"
     elif cb_level == 1:
-        risk_color, risk_label, risk_cls = "#f39c12", "REDUCE SIZES ðŸŸ¡", "risk-warn"
+        risk_color, risk_label, risk_cls = "#f39c12", "REDUCE SIZES 🟡", "risk-warn"
     else:
-        risk_color, risk_label, risk_cls = "#27ae60", "NORMAL ðŸŸ¢", "risk-ok"
+        risk_color, risk_label, risk_cls = "#27ae60", "NORMAL 🟢", "risk-ok"
 
     with c4:
         st.markdown('<p class="section-header">Risk Status</p>', unsafe_allow_html=True)
@@ -669,7 +669,7 @@ def render_charts(price_df: pd.DataFrame, ticker: str) -> None:
 
 def render_signal_feed(trades: pd.DataFrame) -> None:
     """Historical trade table with P&L colouring."""
-    st.markdown('<p class="section-header">Signal Feed â€” Historical Trades</p>',
+    st.markdown('<p class="section-header">Signal Feed — Historical Trades</p>',
                 unsafe_allow_html=True)
 
     if trades.empty:
@@ -685,7 +685,7 @@ def render_signal_feed(trades: pd.DataFrame) -> None:
     show = trades.copy()
     for col in display_cols:
         if col not in show.columns:
-            show[col] = "â€”"
+            show[col] = "—"
 
     # Format current_pnl
     def _fmt_pnl(v):
@@ -737,7 +737,7 @@ def render_risk_panel(state: dict, portfolio: dict) -> None:
         ("10% From Peak",       cb_level >= 3, "FULL_STOP",     "Write lock file"),
     ]
     for label, triggered, level, action in checks:
-        icon = "ðŸ”´ TRIGGERED" if triggered else "ðŸŸ¢ CLEAR"
+        icon = "🔴 TRIGGERED" if triggered else "🟢 CLEAR"
         cb_rows.append({"Trigger": label, "Status": icon, "Level": level, "Action": action})
 
     st.dataframe(
@@ -784,12 +784,12 @@ def render_positions_table(portfolio: dict) -> None:
         upct = p.get("unrealised_pnl_pct", 0.0)
         rows.append({
             "Ticker":          ticker,
-            "Side":            p.get("side", "â€”").upper(),
+            "Side":            p.get("side", "—").upper(),
             "Qty":             f'{p.get("qty", 0):.2f}',
             "Avg Entry":       f'${p.get("avg_entry_price", 0):.2f}',
             "Last Price":      f'${p.get("current_price", 0):.2f}',
             "Market Value":    f'${mv:,.0f}',
-            "Weight":          f'{mv/nav:.1%}' if nav > 0 else "â€”",
+            "Weight":          f'{mv/nav:.1%}' if nav > 0 else "—",
             "Unrealised P&L":  f'${upnl:+,.0f}  ({upct:.2%})',
         })
 
@@ -830,7 +830,7 @@ def main() -> None:
 
     # Signal feed + positions side by side
     tab_trades, tab_positions, tab_risk = st.tabs(
-        ["ðŸ“‹ Signal Feed", "ðŸ’¼ Open Positions", "ðŸ›¡ï¸ Risk Panel"]
+        ["📋 Signal Feed", "💼 Open Positions", "ðŸ›¡ï¸ Risk Panel"]
     )
 
     with tab_trades:
@@ -846,7 +846,7 @@ def main() -> None:
     st.markdown("---")
     refresh_col, _ = st.columns([1, 3])
     with refresh_col:
-        st.caption(f"âŸ³ Auto-refreshing every {refresh_s}s  â€¢  {datetime.now().strftime('%H:%M:%S')}")
+        st.caption(f"âŸ³ Auto-refreshing every {refresh_s}s  •  {datetime.now().strftime('%H:%M:%S')}")
 
     # Auto-refresh trigger
     time.sleep(refresh_s)
