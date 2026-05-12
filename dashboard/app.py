@@ -867,10 +867,9 @@ def main() -> None:
     st.rerun()
 
 
-if __name__ == "__main__":
-    import traceback
-    try:
-        main()
-    except Exception as _exc:
-        st.error(f"Dashboard crashed: {_exc}")
-        st.code(traceback.format_exc())
+import traceback as _tb
+try:
+    main()
+except Exception as _exc:
+    st.error(f"Dashboard crashed: {_exc}")
+    st.code(_tb.format_exc())
