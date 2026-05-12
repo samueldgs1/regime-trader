@@ -1,73 +1,59 @@
 """
 Streamlit dashboard for regime_trader.
-
-Data sources (tried in priority order):
-  1. logs/current_state.json  — bot writes on every bar
-  2. logs/trade_log.jsonl     — bot appends on every fill
-  3. logs/price_history.json  — bot writes rolling price+regime arrays
-  4. Alpaca REST API          — live portfolio/positions (if .env present)
-  5. Synthetic demo data      — always available as fallback
-
-Run with:
-    streamlit run dashboard/app.py
 """
 
 from __future__ import annotations
-
-import json
-import os
-import sys
-import time
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 import streamlit as st
+import traceback as _tb
 
-# ---------------------------------------------------------------------------
-# Path setup — make project root importable
-# ---------------------------------------------------------------------------
-_ROOT = Path(__file__).parent.parent
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
+st.set_page_config(page_title="Regime Trader", page_icon="📈", layout="wide")
 
-_LOGS_DIR  = _ROOT / "logs"
-_STATE_FILE = _LOGS_DIR / "current_state.json"
-_TRADES_FILE = _LOGS_DIR / "trade_log.jsonl"
-_PRICE_FILE  = _LOGS_DIR / "price_history.json"
-_HALT_FILE   = _LOGS_DIR / "TRADING_HALTED.lock"
+try:
+    import json, os, sys, time
+    from datetime import datetime, timedelta, timezone
+    from pathlib import Path
+    from typing import Dict, List, Optional, Tuple
+    import numpy as np
+    import pandas as pd
+    import plotly.graph_objects as go
+    import plotly.express as px
+    from plotly.subplots import make_subplots
+    _IMPORTS_OK = True
+except Exception as _e:
+    st.error(f"Import failed: {_e}")
+    st.code(_tb.format_exc())
+    _IMPORTS_OK = False
 
-# ---------------------------------------------------------------------------
-# Regime colour palette
-# ---------------------------------------------------------------------------
-_REGIME_COLORS: Dict[str, str] = {
-    "crash":        "#c0392b",
-    "deep_bear":    "#e74c3c",
-    "bear":         "#e67e22",
-    "neutral":      "#f39c12",
-    "bull":         "#27ae60",
-    "euphoria":     "#1abc9c",
-    "extreme_bull": "#2980b9",
-    "unknown":      "#95a5a6",
-}
+if _IMPORTS_OK:
+    # -----------------------------------------------------------------------
+    # Path setup — make project root importable
+    # -----------------------------------------------------------------------
+    _ROOT = Path(__file__).parent.parent
+    if str(_ROOT) not in sys.path:
+        sys.path.insert(0, str(_ROOT))
 
-_CB_COLORS = {0: "🟢", 1: "🟡", 2: "🟠", 3: "🔴"}
-_CB_LABELS = {0: "NONE", 1: "REDUCE_SIZES", 2: "HALT_DAY", 3: "FULL_STOP"}
+    _LOGS_DIR  = _ROOT / "logs"
+    _STATE_FILE = _LOGS_DIR / "current_state.json"
+    _TRADES_FILE = _LOGS_DIR / "trade_log.jsonl"
+    _PRICE_FILE  = _LOGS_DIR / "price_history.json"
+    _HALT_FILE   = _LOGS_DIR / "TRADING_HALTED.lock"
 
-# ---------------------------------------------------------------------------
-# Page config  (must be first Streamlit call)
-# ---------------------------------------------------------------------------
-st.set_page_config(
-    page_title="Regime Trader",
-    page_icon="📈",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+    # -----------------------------------------------------------------------
+    # Regime colour palette
+    # -----------------------------------------------------------------------
+    _REGIME_COLORS: Dict[str, str] = {
+        "crash":        "#c0392b",
+        "deep_bear":    "#e74c3c",
+        "bear":         "#e67e22",
+        "neutral":      "#f39c12",
+        "bull":         "#27ae60",
+        "euphoria":     "#1abc9c",
+        "extreme_bull": "#2980b9",
+        "unknown":      "#95a5a6",
+    }
+
+    _CB_COLORS = {0: "🟢", 1: "🟡", 2: "🟠", 3: "🔴"}
+    _CB_LABELS = {0: "NONE", 1: "REDUCE_SIZES", 2: "HALT_DAY", 3: "FULL_STOP"}
 
 # ---------------------------------------------------------------------------
 # Custom CSS
@@ -867,9 +853,9 @@ def main() -> None:
     st.rerun()
 
 
-import traceback as _tb
-try:
-    main()
-except Exception as _exc:
-    st.error(f"Dashboard crashed: {_exc}")
-    st.code(_tb.format_exc())
+if _IMPORTS_OK:
+    try:
+        main()
+    except Exception as _exc:
+        st.error(f"Dashboard crashed: {_exc}")
+        st.code(_tb.format_exc())
