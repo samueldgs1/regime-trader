@@ -1,31 +1,7 @@
-# Core data & numerics
+streamlit>=1.35,<2.0
 numpy>=1.26,<2.0
 pandas>=2.2,<3.0
-scipy>=1.13,<2.0
-scikit-learn>=1.4,<2.0
-
-# HMM
-hmmlearn>=0.3,<0.4
-
-# Technical indicators
-pandas-ta>=0.3,<0.4
-
-# Broker API
-alpaca-py>=0.26,<1.0
-
-# Async / concurrency
-anyio>=4.3,<5.0
-
-# Configuration & environment
-python-dotenv>=1.0,<2.0
-
-# Dashboard
-streamlit>=1.35,<2.0
 plotly>=5.20,<6.0
-
-# Logging & monitoring
-structlog>=24.1,<25.0
-
-# HTTP (webhooks / alerts)
+python-dotenv>=1.0,<2.0
+alpaca-py>=0.26,<1.0
 httpx>=0.27,<1.0
-
