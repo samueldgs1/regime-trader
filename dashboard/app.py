@@ -6,7 +6,7 @@ from __future__ import annotations
 import streamlit as st
 import traceback as _tb
 
-st.set_page_config(page_title="Regime Trader", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Regime Trader", page_icon="ðŸ“ˆ", layout="wide")
 
 try:
     import json, os, sys, time
@@ -26,7 +26,7 @@ except Exception as _e:
 
 if _IMPORTS_OK:
     # -----------------------------------------------------------------------
-    # Path setup — make project root importable
+    # Path setup â€” make project root importable
     # -----------------------------------------------------------------------
     _ROOT = Path(__file__).parent.parent
     if str(_ROOT) not in sys.path:
@@ -52,7 +52,7 @@ if _IMPORTS_OK:
         "unknown":      "#95a5a6",
     }
 
-    _CB_COLORS = {0: "🟢", 1: "🟡", 2: "🟠", 3: "🔴"}
+    _CB_COLORS = {0: "ðŸŸ¢", 1: "ðŸŸ¡", 2: "ðŸŸ ", 3: "ðŸ”´"}
     _CB_LABELS = {0: "NONE", 1: "REDUCE_SIZES", 2: "HALT_DAY", 3: "FULL_STOP"}
 
 # ---------------------------------------------------------------------------
@@ -102,7 +102,7 @@ def _make_demo_price_history(ticker: str = "SPY", n_bars: int = 390) -> pd.DataF
     market_open = now.replace(hour=9, minute=30)
     timestamps = [market_open + timedelta(minutes=i) for i in range(n_bars)]
 
-    # Regime blocks — bull for most of the day, bear patch mid-day
+    # Regime blocks â€” bull for most of the day, bear patch mid-day
     regimes = (
         ["bull"] * 120 + ["neutral"] * 60 + ["bear"] * 80 + ["neutral"] * 50 + ["bull"] * 80
     )[:n_bars]
@@ -370,7 +370,7 @@ def build_price_regime_chart(df: pd.DataFrame, ticker: str) -> go.Figure:
     ))
 
     fig.update_layout(
-        title=dict(text=f"{ticker} — Price with Regime Overlay", font_size=14),
+        title=dict(text=f"{ticker} â€” Price with Regime Overlay", font_size=14),
         xaxis_rangeslider_visible=False,
         plot_bgcolor="#0e1117",
         paper_bgcolor="#0e1117",
@@ -471,7 +471,7 @@ def build_regime_pie(df: pd.DataFrame) -> go.Figure:
 
 def render_sidebar() -> dict:
     """Render sidebar controls and return settings dict."""
-    st.sidebar.title("⚙️ Settings")
+    st.sidebar.title("âš™ï¸ Settings")
 
     refresh_s = st.sidebar.selectbox(
         "Auto-refresh interval", [15, 30, 60, 120], index=1,
@@ -497,15 +497,15 @@ def render_sidebar() -> dict:
     _port  = load_portfolio()
     source = _port.get("_source", "demo")
     if source == "alpaca":
-        st.sidebar.success("🟢 Live — Alpaca connected")
+        st.sidebar.success("ðŸŸ¢ Live â€” Alpaca connected")
     elif source == "snapshot":
-        st.sidebar.warning("🟡 Snapshot — bot offline")
+        st.sidebar.warning("ðŸŸ¡ Snapshot â€” bot offline")
     else:
-        st.sidebar.info("🔵 Demo mode — no credentials")
+        st.sidebar.info("ðŸ”µ Demo mode â€” no credentials")
 
     halt = _HALT_FILE.exists()
     if halt:
-        st.sidebar.error("🚨 TRADING_HALTED.lock present")
+        st.sidebar.error("ðŸš¨ TRADING_HALTED.lock present")
 
     return {"refresh_s": refresh_s, "ticker": ticker}
 
@@ -518,13 +518,13 @@ def render_header(state: dict, source: str) -> None:
         age_s = (datetime.now(tz=timezone.utc) - dt).total_seconds()
         age_str = f"{int(age_s)}s ago" if age_s < 120 else f"{int(age_s/60)}m ago"
     except Exception:
-        age_str = "—"
+        age_str = "â€”"
 
-    source_badge = {"alpaca": "🟢 Live", "snapshot": "🟡 Snapshot", "demo": "🔵 Demo"}.get(source, "—")
+    source_badge = {"alpaca": "ðŸŸ¢ Live", "snapshot": "ðŸŸ¡ Snapshot", "demo": "ðŸ”µ Demo"}.get(source, "â€”")
 
     cols = st.columns([3, 1, 1])
     with cols[0]:
-        st.markdown("## 📈 Regime Trader Dashboard")
+        st.markdown("## ðŸ“ˆ Regime Trader Dashboard")
     with cols[1]:
         st.markdown(f"<div style='text-align:right;color:#8891b4;font-size:0.85rem;padding-top:14px'>"
                     f"Updated {age_str}</div>", unsafe_allow_html=True)
@@ -546,7 +546,7 @@ def render_top_row(state: dict, portfolio: dict) -> None:
     is_uncertain  = regime_info.get("is_uncertain", False)
     n_regimes     = regime_info.get("n_regimes", 4)
     regime_color  = _REGIME_COLORS.get(regime_name, "#95a5a6")
-    uncertain_tag = " ⚠️" if is_uncertain else ""
+    uncertain_tag = " âš ï¸" if is_uncertain else ""
 
     with c1:
         st.markdown('<p class="section-header">Current Regime</p>', unsafe_allow_html=True)
@@ -600,7 +600,7 @@ def render_top_row(state: dict, portfolio: dict) -> None:
             f'<div style="color:#8891b4;font-size:0.8rem">'
             f'Open positions: <span style="color:#c8ccd8">{n_positions}</span></div>'
             f'<div style="color:#8891b4;font-size:0.8rem;margin-top:2px">'
-            f'Leverage: <span style="color:#c8ccd8">{leverage:.2f}×</span></div>'
+            f'Leverage: <span style="color:#c8ccd8">{leverage:.2f}Ã—</span></div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -613,13 +613,13 @@ def render_top_row(state: dict, portfolio: dict) -> None:
     halt_exists = _HALT_FILE.exists()
 
     if halt_exists or cb_level >= 3:
-        risk_color, risk_label, risk_cls = "#e74c3c", "FULL STOP 🚨", "risk-danger"
+        risk_color, risk_label, risk_cls = "#e74c3c", "FULL STOP ðŸš¨", "risk-danger"
     elif cb_level == 2:
-        risk_color, risk_label, risk_cls = "#e67e22", "HALT DAY 🟠", "risk-danger"
+        risk_color, risk_label, risk_cls = "#e67e22", "HALT DAY ðŸŸ ", "risk-danger"
     elif cb_level == 1:
-        risk_color, risk_label, risk_cls = "#f39c12", "REDUCE SIZES 🟡", "risk-warn"
+        risk_color, risk_label, risk_cls = "#f39c12", "REDUCE SIZES ðŸŸ¡", "risk-warn"
     else:
-        risk_color, risk_label, risk_cls = "#27ae60", "NORMAL 🟢", "risk-ok"
+        risk_color, risk_label, risk_cls = "#27ae60", "NORMAL ðŸŸ¢", "risk-ok"
 
     with c4:
         st.markdown('<p class="section-header">Risk Status</p>', unsafe_allow_html=True)
@@ -632,7 +632,7 @@ def render_top_row(state: dict, portfolio: dict) -> None:
             f'Drawdown: <span style="color:{"#e74c3c" if drawdown > 0.05 else "#c8ccd8"}">'
             f'{drawdown:.2%}</span></div>'
             f'<div style="color:#8891b4;font-size:0.8rem">'
-            f'Size scalar: <span style="color:#c8ccd8">{size_mul:.1f}×</span></div>'
+            f'Size scalar: <span style="color:#c8ccd8">{size_mul:.1f}Ã—</span></div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -645,12 +645,12 @@ def render_charts(price_df: pd.DataFrame, ticker: str) -> None:
     with col_price:
         st.plotly_chart(
             build_price_regime_chart(price_df, ticker),
-            use_container_width=True, config={"displayModeBar": False},
+            width="stretch", config={"displayModeBar": False},
         )
     with col_pie:
         st.plotly_chart(
             build_regime_pie(price_df),
-            use_container_width=True, config={"displayModeBar": False},
+            width="stretch", config={"displayModeBar": False},
         )
 
     # Row 2: volume | confidence
@@ -658,18 +658,18 @@ def render_charts(price_df: pd.DataFrame, ticker: str) -> None:
     with col_vol:
         st.plotly_chart(
             build_volume_chart(price_df),
-            use_container_width=True, config={"displayModeBar": False},
+            width="stretch", config={"displayModeBar": False},
         )
     with col_conf:
         st.plotly_chart(
             build_confidence_chart(price_df),
-            use_container_width=True, config={"displayModeBar": False},
+            width="stretch", config={"displayModeBar": False},
         )
 
 
 def render_signal_feed(trades: pd.DataFrame) -> None:
     """Historical trade table with P&L colouring."""
-    st.markdown('<p class="section-header">Signal Feed — Historical Trades</p>',
+    st.markdown('<p class="section-header">Signal Feed â€” Historical Trades</p>',
                 unsafe_allow_html=True)
 
     if trades.empty:
@@ -685,7 +685,7 @@ def render_signal_feed(trades: pd.DataFrame) -> None:
     show = trades.copy()
     for col in display_cols:
         if col not in show.columns:
-            show[col] = "—"
+            show[col] = "â€”"
 
     # Format current_pnl
     def _fmt_pnl(v):
@@ -704,7 +704,7 @@ def render_signal_feed(trades: pd.DataFrame) -> None:
 
     st.dataframe(
         show_df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "Side": st.column_config.TextColumn("Side", width="small"),
@@ -731,18 +731,18 @@ def render_risk_panel(state: dict, portfolio: dict) -> None:
     # Circuit breaker status table
     cb_rows = []
     checks = [
-        ("Intraday 2% Loss",    cb_level >= 1, "REDUCE_SIZES",  "↓ sizes ×0.5"),
+        ("Intraday 2% Loss",    cb_level >= 1, "REDUCE_SIZES",  "â†“ sizes Ã—0.5"),
         ("Daily 5% Loss",       cb_level >= 2, "HALT_DAY",      "No new orders"),
-        ("7-Day 5% Rolling",    cb_level >= 1, "REDUCE_SIZES",  "↓ sizes ×0.5 + alert"),
+        ("7-Day 5% Rolling",    cb_level >= 1, "REDUCE_SIZES",  "â†“ sizes Ã—0.5 + alert"),
         ("10% From Peak",       cb_level >= 3, "FULL_STOP",     "Write lock file"),
     ]
     for label, triggered, level, action in checks:
-        icon = "🔴 TRIGGERED" if triggered else "🟢 CLEAR"
+        icon = "ðŸ”´ TRIGGERED" if triggered else "ðŸŸ¢ CLEAR"
         cb_rows.append({"Trigger": label, "Status": icon, "Level": level, "Action": action})
 
     st.dataframe(
         pd.DataFrame(cb_rows),
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "Status": st.column_config.TextColumn("Status", width="medium"),
@@ -755,13 +755,13 @@ def render_risk_panel(state: dict, portfolio: dict) -> None:
     pnl_color = "normal"
     m1.metric("Peak Drawdown", f"{drawdown:.2%}",
               delta=f"{intraday:.2%} intraday", delta_color="inverse")
-    m2.metric("Leverage In Use",  f"{leverage:.2f}×",
-              delta=f"max 1.5×", delta_color="off")
+    m2.metric("Leverage In Use",  f"{leverage:.2f}Ã—",
+              delta=f"max 1.5Ã—", delta_color="off")
     m3.metric("Daily P&L",
               f"${daily_pnl:+,.0f}",
               delta_color="normal" if daily_pnl >= 0 else "inverse")
     m4.metric("Size Scalar",
-              f"{state.get('size_multiplier', 1.0):.1f}×",
+              f"{state.get('size_multiplier', 1.0):.1f}Ã—",
               delta="REDUCE_SIZES active" if cb_level == 1 else "normal",
               delta_color="inverse" if cb_level >= 1 else "off")
 
@@ -784,16 +784,16 @@ def render_positions_table(portfolio: dict) -> None:
         upct = p.get("unrealised_pnl_pct", 0.0)
         rows.append({
             "Ticker":          ticker,
-            "Side":            p.get("side", "—").upper(),
+            "Side":            p.get("side", "â€”").upper(),
             "Qty":             f'{p.get("qty", 0):.2f}',
             "Avg Entry":       f'${p.get("avg_entry_price", 0):.2f}',
             "Last Price":      f'${p.get("current_price", 0):.2f}',
             "Market Value":    f'${mv:,.0f}',
-            "Weight":          f'{mv/nav:.1%}' if nav > 0 else "—",
+            "Weight":          f'{mv/nav:.1%}' if nav > 0 else "â€”",
             "Unrealised P&L":  f'${upnl:+,.0f}  ({upct:.2%})',
         })
 
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
 
 # ===========================================================================
@@ -830,7 +830,7 @@ def main() -> None:
 
     # Signal feed + positions side by side
     tab_trades, tab_positions, tab_risk = st.tabs(
-        ["📋 Signal Feed", "💼 Open Positions", "🛡️ Risk Panel"]
+        ["ðŸ“‹ Signal Feed", "ðŸ’¼ Open Positions", "ðŸ›¡ï¸ Risk Panel"]
     )
 
     with tab_trades:
@@ -846,7 +846,7 @@ def main() -> None:
     st.markdown("---")
     refresh_col, _ = st.columns([1, 3])
     with refresh_col:
-        st.caption(f"⟳ Auto-refreshing every {refresh_s}s  •  {datetime.now().strftime('%H:%M:%S')}")
+        st.caption(f"âŸ³ Auto-refreshing every {refresh_s}s  â€¢  {datetime.now().strftime('%H:%M:%S')}")
 
     # Auto-refresh trigger
     time.sleep(refresh_s)
@@ -859,3 +859,4 @@ if _IMPORTS_OK:
     except Exception as _exc:
         st.error(f"Dashboard crashed: {_exc}")
         st.code(_tb.format_exc())
+
