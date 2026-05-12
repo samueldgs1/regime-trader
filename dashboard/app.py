@@ -868,4 +868,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import traceback
+    try:
+        main()
+    except Exception as _exc:
+        st.error(f"Dashboard crashed: {_exc}")
+        st.code(traceback.format_exc())
