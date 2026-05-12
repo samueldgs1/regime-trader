@@ -546,7 +546,7 @@ def render_top_row(state: dict, portfolio: dict) -> None:
     is_uncertain  = regime_info.get("is_uncertain", False)
     n_regimes     = regime_info.get("n_regimes", 4)
     regime_color  = _REGIME_COLORS.get(regime_name, "#95a5a6")
-    uncertain_tag = " âš ï¸" if is_uncertain else ""
+    uncertain_tag = " ⚠️" if is_uncertain else ""
 
     with c1:
         st.markdown('<p class="section-header">Current Regime</p>', unsafe_allow_html=True)
@@ -600,7 +600,7 @@ def render_top_row(state: dict, portfolio: dict) -> None:
             f'<div style="color:#8891b4;font-size:0.8rem">'
             f'Open positions: <span style="color:#c8ccd8">{n_positions}</span></div>'
             f'<div style="color:#8891b4;font-size:0.8rem;margin-top:2px">'
-            f'Leverage: <span style="color:#c8ccd8">{leverage:.2f}Ã—</span></div>'
+            f'Leverage: <span style="color:#c8ccd8">{leverage:.2f}×</span></div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -632,7 +632,7 @@ def render_top_row(state: dict, portfolio: dict) -> None:
             f'Drawdown: <span style="color:{"#e74c3c" if drawdown > 0.05 else "#c8ccd8"}">'
             f'{drawdown:.2%}</span></div>'
             f'<div style="color:#8891b4;font-size:0.8rem">'
-            f'Size scalar: <span style="color:#c8ccd8">{size_mul:.1f}Ã—</span></div>'
+            f'Size scalar: <span style="color:#c8ccd8">{size_mul:.1f}×</span></div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -731,9 +731,9 @@ def render_risk_panel(state: dict, portfolio: dict) -> None:
     # Circuit breaker status table
     cb_rows = []
     checks = [
-        ("Intraday 2% Loss",    cb_level >= 1, "REDUCE_SIZES",  "â†“ sizes Ã—0.5"),
+        ("Intraday 2% Loss",    cb_level >= 1, "REDUCE_SIZES",  "↓ sizes ×0.5"),
         ("Daily 5% Loss",       cb_level >= 2, "HALT_DAY",      "No new orders"),
-        ("7-Day 5% Rolling",    cb_level >= 1, "REDUCE_SIZES",  "â†“ sizes Ã—0.5 + alert"),
+        ("7-Day 5% Rolling",    cb_level >= 1, "REDUCE_SIZES",  "↓ sizes ×0.5 + alert"),
         ("10% From Peak",       cb_level >= 3, "FULL_STOP",     "Write lock file"),
     ]
     for label, triggered, level, action in checks:
@@ -755,13 +755,13 @@ def render_risk_panel(state: dict, portfolio: dict) -> None:
     pnl_color = "normal"
     m1.metric("Peak Drawdown", f"{drawdown:.2%}",
               delta=f"{intraday:.2%} intraday", delta_color="inverse")
-    m2.metric("Leverage In Use",  f"{leverage:.2f}Ã—",
-              delta=f"max 1.5Ã—", delta_color="off")
+    m2.metric("Leverage In Use",  f"{leverage:.2f}×",
+              delta=f"max 1.5×", delta_color="off")
     m3.metric("Daily P&L",
               f"${daily_pnl:+,.0f}",
               delta_color="normal" if daily_pnl >= 0 else "inverse")
     m4.metric("Size Scalar",
-              f"{state.get('size_multiplier', 1.0):.1f}Ã—",
+              f"{state.get('size_multiplier', 1.0):.1f}×",
               delta="REDUCE_SIZES active" if cb_level == 1 else "normal",
               delta_color="inverse" if cb_level >= 1 else "off")
 
@@ -830,7 +830,7 @@ def main() -> None:
 
     # Signal feed + positions side by side
     tab_trades, tab_positions, tab_risk = st.tabs(
-        ["📋 Signal Feed", "💼 Open Positions", "ðŸ›¡ï¸ Risk Panel"]
+        ["📋 Signal Feed", "💼 Open Positions", "🛡️ Risk Panel"]
     )
 
     with tab_trades:
@@ -846,7 +846,7 @@ def main() -> None:
     st.markdown("---")
     refresh_col, _ = st.columns([1, 3])
     with refresh_col:
-        st.caption(f"âŸ³ Auto-refreshing every {refresh_s}s  •  {datetime.now().strftime('%H:%M:%S')}")
+        st.caption(f"⟳ Auto-refreshing every {refresh_s}s  •  {datetime.now().strftime('%H:%M:%S')}")
 
     # Auto-refresh trigger
     time.sleep(refresh_s)
