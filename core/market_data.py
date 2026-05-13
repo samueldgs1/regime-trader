@@ -169,7 +169,8 @@ class MarketData:
         api_key    = os.getenv("ALPACA_API_KEY",    "")
         secret_key = os.getenv("ALPACA_SECRET_KEY", "")
         base_url   = os.getenv("ALPACA_BASE_URL",   "https://paper-api.alpaca.markets")
-        data_feed  = os.getenv("ALPACA_DATA_FEED",  "iex")
+        from config.settings import BROKER as _BROKER
+        data_feed  = os.getenv("ALPACA_DATA_FEED",  _BROKER.data_feed)
 
         if not api_key or not secret_key:
             raise EnvironmentError(
