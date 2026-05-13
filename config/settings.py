@@ -31,7 +31,7 @@ BROKER = BrokerConfig()
 @dataclass
 class UniverseConfig:
     """Tradeable tickers."""
-    tickers: List[str] = field(default_factory=lambda: ["BTC/USD"])
+    tickers: List[str] = field(default_factory=lambda: ["BTC/USD", "ETH/USD"])
     benchmark: str = "BTC/USD"
 
 UNIVERSE = UniverseConfig()

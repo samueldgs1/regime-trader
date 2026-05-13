@@ -515,7 +515,7 @@ def render_sidebar() -> dict:
         "Auto-refresh interval", [15, 30, 60, 120], index=1,
         format_func=lambda s: f"{s}s",
     )
-    ticker = st.sidebar.text_input("Primary ticker", value="BTC/USD").upper()
+    ticker = st.sidebar.text_input("Chart ticker", value="BTC/USD").upper()
 
     # --- Bot controls ---
     st.sidebar.markdown("---")
