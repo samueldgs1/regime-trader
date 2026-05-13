@@ -515,7 +515,7 @@ def render_sidebar() -> dict:
         "Auto-refresh interval", [15, 30, 60, 120], index=1,
         format_func=lambda s: f"{s}s",
     )
-    ticker = st.sidebar.text_input("Primary ticker", value="SPY").upper()
+    ticker = st.sidebar.text_input("Primary ticker", value="BTC/USD").upper()
 
     # --- Bot controls ---
     st.sidebar.markdown("---")
@@ -525,13 +525,13 @@ def render_sidebar() -> dict:
         st.sidebar.success(f"🟢 Bot running (PID {pid})")
         if st.sidebar.button("⏹ Stop Bot", type="primary", use_container_width=True):
             _stop_bot(pid)
-            st.sidebar.warning("Bot stopped.")
+            st.cache_data.clear()
             st.rerun()
     else:
         st.sidebar.warning("🔴 Bot not running")
         if st.sidebar.button("▶ Start Bot", type="primary", use_container_width=True):
             _start_bot()
-            st.sidebar.success("Bot started!")
+            st.cache_data.clear()
             st.rerun()
 
     st.sidebar.markdown("---")
