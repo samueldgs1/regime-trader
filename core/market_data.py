@@ -138,9 +138,10 @@ class MarketData:
         self._data_feed      = data_feed
         self._alert_cb       = alert_callback
         self._poll_interval  = poll_interval_s
+        self._is_crypto      = data_feed == "crypto"
 
-        self._rest_client    = None     # StockHistoricalDataClient (lazy init)
-        self._stream_client  = None     # StockDataStream (lazy init)
+        self._rest_client    = None     # Historical data client (lazy init)
+        self._stream_client  = None     # Streaming client (lazy init)
 
         # Subscription state
         self._bar_subs:    List[Tuple[str, Callable]] = []  # (ticker, cb)
@@ -214,24 +215,35 @@ class MarketData:
         DataFrame indexed by (symbol, timestamp) with columns
         ['open', 'high', 'low', 'close', 'volume', 'vwap'].
         """
-        from alpaca.data.requests import StockBarsRequest
-
         client = self._get_rest_client()
         tf     = _alpaca_timeframe(timeframe)
 
-        req = StockBarsRequest(
-            symbol_or_symbols=tickers,
-            start=datetime.combine(start, datetime.min.time()),
-            end=datetime.combine(end,   datetime.max.time()),
-            timeframe=tf,
-            adjustment=adjustment,
-            feed=self._data_feed,
-        )
+        if self._is_crypto:
+            from alpaca.data.requests import CryptoBarsRequest
+            req = CryptoBarsRequest(
+                symbol_or_symbols=tickers,
+                start=datetime.combine(start, datetime.min.time()),
+                end=datetime.combine(end,   datetime.max.time()),
+                timeframe=tf,
+            )
+        else:
+            from alpaca.data.requests import StockBarsRequest
+            req = StockBarsRequest(
+                symbol_or_symbols=tickers,
+                start=datetime.combine(start, datetime.min.time()),
+                end=datetime.combine(end,   datetime.max.time()),
+                timeframe=tf,
+                adjustment=adjustment,
+                feed=self._data_feed,
+            )
 
         for attempt, backoff in enumerate(_RETRY_BACKOFF_S):
             try:
-                response = client.get_stock_bars(req)
-                df       = response.df
+                if self._is_crypto:
+                    response = client.get_crypto_bars(req)
+                else:
+                    response = client.get_stock_bars(req)
+                df = response.df
                 if df.empty:
                     return pd.DataFrame(
                         columns=["open", "high", "low", "close", "volume", "vwap"]
@@ -256,23 +268,33 @@ class MarketData:
         limit:     int = 500,
     ) -> pd.DataFrame:
         """Fetch the most recent ``limit`` bars up to now."""
-        from alpaca.data.requests import StockBarsRequest
-
         client = self._get_rest_client()
         tf     = _alpaca_timeframe(timeframe)
         end    = datetime.now(tz=timezone.utc)
         start  = end - timedelta(days=limit * 2)   # generous window
 
-        req = StockBarsRequest(
-            symbol_or_symbols=tickers,
-            start=start,
-            end=end,
-            timeframe=tf,
-            limit=limit,
-        )
+        if self._is_crypto:
+            from alpaca.data.requests import CryptoBarsRequest
+            req = CryptoBarsRequest(
+                symbol_or_symbols=tickers,
+                start=start,
+                end=end,
+                timeframe=tf,
+                limit=limit,
+            )
+            response = client.get_crypto_bars(req)
+        else:
+            from alpaca.data.requests import StockBarsRequest
+            req = StockBarsRequest(
+                symbol_or_symbols=tickers,
+                start=start,
+                end=end,
+                timeframe=tf,
+                limit=limit,
+            )
+            response = client.get_stock_bars(req)
 
-        response = client.get_stock_bars(req)
-        df       = response.df
+        df = response.df
         if df.empty:
             return pd.DataFrame(
                 columns=["open", "high", "low", "close", "volume", "vwap"]
@@ -501,12 +523,15 @@ class MarketData:
                         bar_tickers,
                     )
                     try:
-                        from alpaca.data.requests import StockLatestBarRequest
                         client = self._get_rest_client()
-                        req    = StockLatestBarRequest(
-                            symbol_or_symbols=bar_tickers
-                        )
-                        bars = client.get_stock_latest_bar(req)
+                        if self._is_crypto:
+                            from alpaca.data.requests import CryptoLatestBarRequest
+                            req  = CryptoLatestBarRequest(symbol_or_symbols=bar_tickers)
+                            bars = client.get_crypto_latest_bar(req)
+                        else:
+                            from alpaca.data.requests import StockLatestBarRequest
+                            req  = StockLatestBarRequest(symbol_or_symbols=bar_tickers)
+                            bars = client.get_stock_latest_bar(req)
                         for ticker, bar in bars.items():
                             payload = {
                                 "open":      float(bar.open),
@@ -570,19 +595,29 @@ class MarketData:
         return self._rest_client
 
     def _build_rest_client(self):
-        """Instantiate and return the alpaca-py StockHistoricalDataClient."""
+        """Instantiate and return the appropriate historical data client."""
+        if self._is_crypto:
+            from alpaca.data.historical import CryptoHistoricalDataClient
+            return CryptoHistoricalDataClient(
+                api_key=self._api_key,
+                secret_key=self._secret_key,
+            )
         from alpaca.data.historical import StockHistoricalDataClient
-
         return StockHistoricalDataClient(
             api_key=self._api_key,
             secret_key=self._secret_key,
         )
 
     def _build_stream_client(self):
-        """Instantiate and return the alpaca-py StockDataStream."""
+        """Instantiate and return the appropriate streaming client."""
+        if self._is_crypto:
+            from alpaca.data.live import CryptoDataStream
+            return CryptoDataStream(
+                api_key=self._api_key,
+                secret_key=self._secret_key,
+            )
         from alpaca.data.live import StockDataStream
         from alpaca.data.enums import DataFeed
-
         feed_enum = DataFeed(self._data_feed) if isinstance(self._data_feed, str) else self._data_feed
         return StockDataStream(
             api_key=self._api_key,

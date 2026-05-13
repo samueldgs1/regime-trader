@@ -18,7 +18,7 @@ from typing import Dict, List
 class BrokerConfig:
     """Alpaca connection settings."""
     base_url: str = "https://paper-api.alpaca.markets"
-    data_feed: str = "iex"          # "iex" (free) or "sip" (paid)
+    data_feed: str = "crypto"       # "crypto" | "iex" (stocks, free) | "sip" (stocks, paid)
     paper_trading: bool = True
     request_timeout_s: int = 10
 
@@ -31,8 +31,8 @@ BROKER = BrokerConfig()
 @dataclass
 class UniverseConfig:
     """Tradeable tickers."""
-    tickers: List[str] = field(default_factory=lambda: ["SPY"])
-    benchmark: str = "SPY"
+    tickers: List[str] = field(default_factory=lambda: ["BTC/USD"])
+    benchmark: str = "BTC/USD"
 
 UNIVERSE = UniverseConfig()
 
@@ -47,8 +47,8 @@ class HMMConfig:
     n_regimes_max: int = 7
     n_regimes_default: int = 4        # used when auto-selection is off
     auto_select_regimes: bool = True  # AIC/BIC search in [min, max]
-    training_window_days: int = 504   # ~2 years of trading days
-    retrain_interval_days: int = 21   # re-fit every ~1 month
+    training_window_days: int = 365   # 1 year of calendar days (crypto is 24/7)
+    retrain_interval_days: int = 7    # re-fit weekly (crypto moves faster)
     features: List[str] = field(default_factory=lambda: [
         "log_return",
         "realized_vol_5d",
@@ -109,16 +109,16 @@ REGIME_STRATEGIES: Dict[int, Dict] = {
 @dataclass
 class RiskConfig:
     """Circuit breakers, sizing constraints, and drawdown limits."""
-    max_position_pct: float = 1.00       # max single position as % of NAV (1.0 = no cap; SPY is diversified)
-    max_sector_pct: float = 0.40         # max single sector exposure
-    max_drawdown_pct: float = 0.15       # daily drawdown hard stop (15 %)
-    max_portfolio_drawdown_pct: float = 0.25  # peak-to-trough hard stop
-    daily_loss_limit_pct: float = 0.05   # intraday loss limit (5 %)
+    max_position_pct: float = 1.00       # max single position as % of NAV
+    max_sector_pct: float = 1.00         # crypto — single asset, no sector limit
+    max_drawdown_pct: float = 0.20       # daily drawdown hard stop (20% — crypto is volatile)
+    max_portfolio_drawdown_pct: float = 0.35  # peak-to-trough hard stop
+    daily_loss_limit_pct: float = 0.10   # intraday loss limit (10% for crypto)
     circuit_breaker_cooldown_minutes: int = 60
-    vol_target_annual: float = 0.12      # 12 % annualised vol target
+    vol_target_annual: float = 0.60      # 60% annualised vol target (crypto baseline)
     vol_lookback_days: int = 21
-    min_trade_size_usd: float = 100.0
-    slippage_bps: float = 5.0            # assumed slippage for sizing
+    min_trade_size_usd: float = 10.0     # crypto supports small fractional orders
+    slippage_bps: float = 15.0           # wider spreads on crypto
 
 RISK = RiskConfig()
 
@@ -134,7 +134,7 @@ class BacktestConfig:
     initial_capital: float = 100_000.0
     commission_pct: float = 0.001        # 0.1 % per side
     slippage_bps: float = 5.0
-    benchmark: str = "SPY"
+    benchmark: str = "BTC/USD"
     walk_forward_anchored: bool = False  # False = rolling, True = expanding
 
 BACKTEST = BacktestConfig()

@@ -20,7 +20,7 @@ import pandas as pd
 from sklearn.preprocessing import RobustScaler
 
 _REQUIRED_COLS: List[str] = ["open", "high", "low", "close", "volume"]
-_ANNUALISE: float = np.sqrt(252)
+_ANNUALISE: float = np.sqrt(365)  # crypto trades 365 days/year
 
 
 class FeatureEngineer:
