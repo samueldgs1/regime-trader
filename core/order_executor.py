@@ -92,6 +92,11 @@ def _enum_val(v) -> str:
     return v.value if isinstance(v, Enum) else str(v)
 
 
+def _default_tif(ticker: str) -> "TimeInForce":
+    """Return GTC for crypto tickers (e.g. BTC/USD), DAY for equities."""
+    return TimeInForce.GTC if "/" in ticker else TimeInForce.DAY
+
+
 # ---------------------------------------------------------------------------
 # Data class
 # ---------------------------------------------------------------------------
@@ -326,7 +331,7 @@ class OrderExecutor:
         ticker:        str,
         notional:      float,
         side:          OrderSide,
-        time_in_force: TimeInForce = TimeInForce.DAY,
+        time_in_force: TimeInForce = None,
     ) -> Order:
         """
         Place a notional market order (dollar amount, not shares).
@@ -334,22 +339,23 @@ class OrderExecutor:
         Parameters
         ----------
         ticker:
-            Equity symbol.
+            Equity or crypto symbol.
         notional:
             Unsigned dollar amount.
         side:
             OrderSide.BUY or OrderSide.SELL.
         time_in_force:
-            Default DAY.
+            Default DAY for equities, GTC for crypto.
         """
         from alpaca.trading.requests import MarketOrderRequest
         from alpaca.trading.enums    import OrderSide as ASide, TimeInForce as ATIF
 
+        tif = time_in_force if time_in_force is not None else _default_tif(ticker)
         req = MarketOrderRequest(
             symbol=ticker,
             notional=round(notional, 2),
             side=ASide(_enum_val(side)),
-            time_in_force=ATIF(_enum_val(time_in_force)),
+            time_in_force=ATIF(_enum_val(tif)),
         )
         raw = self._submit_with_retry(req)
         return self._parse_order(raw)
@@ -360,18 +366,19 @@ class OrderExecutor:
         qty:           float,
         side:          OrderSide,
         limit_price:   float,
-        time_in_force: TimeInForce = TimeInForce.DAY,
+        time_in_force: TimeInForce = None,
     ) -> Order:
         """Place a share-quantity limit order."""
         from alpaca.trading.requests import LimitOrderRequest
         from alpaca.trading.enums    import OrderSide as ASide, TimeInForce as ATIF
 
+        tif = time_in_force if time_in_force is not None else _default_tif(ticker)
         req = LimitOrderRequest(
             symbol=ticker,
             qty=qty,
             side=ASide(_enum_val(side)),
             limit_price=round(limit_price, 2),
-            time_in_force=ATIF(time_in_force.value),
+            time_in_force=ATIF(_enum_val(tif)),
         )
         raw = self._submit_with_retry(req)
         return self._parse_order(raw)
@@ -382,18 +389,19 @@ class OrderExecutor:
         qty:           float,
         side:          OrderSide,
         stop_price:    float,
-        time_in_force: TimeInForce = TimeInForce.DAY,
+        time_in_force: TimeInForce = None,
     ) -> Order:
         """Place a stop order."""
         from alpaca.trading.requests import StopOrderRequest
         from alpaca.trading.enums    import OrderSide as ASide, TimeInForce as ATIF
 
+        tif = time_in_force if time_in_force is not None else _default_tif(ticker)
         req = StopOrderRequest(
             symbol=ticker,
             qty=qty,
             side=ASide(_enum_val(side)),
             stop_price=round(stop_price, 2),
-            time_in_force=ATIF(time_in_force.value),
+            time_in_force=ATIF(_enum_val(tif)),
         )
         raw = self._submit_with_retry(req)
         return self._parse_order(raw)
@@ -425,7 +433,7 @@ class OrderExecutor:
             symbol=ticker,
             qty=qty,
             side=ASide(_enum_val(side)),
-            time_in_force=ATIF.DAY,
+            time_in_force=ATIF(_enum_val(_default_tif(ticker))),
             order_class=OrderClass.BRACKET,
             take_profit=TakeProfitRequest(limit_price=round(take_profit_price, 2)),
             stop_loss=StopLossRequest(stop_price=round(stop_loss_price, 2)),
