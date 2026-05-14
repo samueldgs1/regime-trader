@@ -31,7 +31,9 @@ BROKER = BrokerConfig()
 @dataclass
 class UniverseConfig:
     """Tradeable tickers."""
-    tickers: List[str] = field(default_factory=lambda: ["BTC/USD", "ETH/USD"])
+    tickers: List[str] = field(default_factory=lambda: [
+        "BTC/USD", "ETH/USD", "SOL/USD", "DOGE/USD", "AVAX/USD", "LINK/USD", "LTC/USD"
+    ])
     benchmark: str = "BTC/USD"
 
 UNIVERSE = UniverseConfig()
@@ -109,7 +111,7 @@ REGIME_STRATEGIES: Dict[int, Dict] = {
 @dataclass
 class RiskConfig:
     """Circuit breakers, sizing constraints, and drawdown limits."""
-    max_capital_usd: float = 150.0        # hard cap on total capital used (0 = no cap)
+    max_capital_usd: float = 700.0        # hard cap on total capital used (0 = no cap)
     max_position_pct: float = 1.00       # max single position as % of NAV
     max_sector_pct: float = 1.00         # crypto — single asset, no sector limit
     max_drawdown_pct: float = 0.20       # daily drawdown hard stop (20% — crypto is volatile)
