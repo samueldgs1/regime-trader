@@ -471,6 +471,10 @@ def on_bar(ticker: str, bar: dict, components: dict) -> None:
     # 3. Get portfolio snapshot
     snap = position_tracker.snapshot()
     nav = snap.nav
+    # Apply capital cap — treat account as if NAV = max_capital_usd
+    from config.settings import RISK as _RISK
+    if _RISK.max_capital_usd > 0:
+        nav = min(nav, _RISK.max_capital_usd)
 
     # 4. Check circuit breakers
     try:
