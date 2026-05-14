@@ -645,16 +645,26 @@ def render_top_row(state: dict, portfolio: dict) -> None:
     gross_exp = portfolio.get("gross_exposure", 0.0)
     leverage  = gross_exp / nav if nav > 0 else 0.0
 
+    # Build per-position rows
+    pos_rows = "".join(
+        f'<div style="display:flex;justify-content:space-between;'
+        f'font-size:0.78rem;margin-top:3px">'
+        f'<span style="color:#c8ccd8">{ticker}</span>'
+        f'<span style="color:{"#27ae60" if d.get("unrealised_pnl",0)>=0 else "#e74c3c"}">'
+        f'${d.get("market_value",0):,.0f} '
+        f'({"+" if d.get("unrealised_pnl",0)>=0 else ""}${d.get("unrealised_pnl",0):,.0f})'
+        f'</span></div>'
+        for ticker, d in positions.items()
+    ) if positions else '<div style="color:#8891b4;font-size:0.78rem">No open positions</div>'
+
     with c3:
         st.markdown('<p class="section-header">Exposure</p>', unsafe_allow_html=True)
         st.markdown(
             f'<div class="metric-card">'
-            f'<div class="metric-label">Regimes Tracked</div>'
-            f'<div class="metric-value">{n_regimes}</div>'
-            f'<div style="color:#8891b4;font-size:0.8rem">'
-            f'Open positions: <span style="color:#c8ccd8">{n_positions}</span></div>'
-            f'<div style="color:#8891b4;font-size:0.8rem;margin-top:2px">'
+            f'<div class="metric-label">Open Positions ({n_positions})</div>'
+            f'<div style="color:#8891b4;font-size:0.75rem;margin-bottom:4px">'
             f'Leverage: <span style="color:#c8ccd8">{leverage:.2f}×</span></div>'
+            f'{pos_rows}'
             f'</div>',
             unsafe_allow_html=True,
         )
