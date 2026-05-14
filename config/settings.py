@@ -121,7 +121,7 @@ class RiskConfig:
     circuit_breaker_cooldown_minutes: int = 60
     vol_target_annual: float = 0.60      # 60% annualised vol target (crypto baseline)
     vol_lookback_days: int = 21
-    min_trade_size_usd: float = 10.0     # crypto supports small fractional orders
+    min_trade_size_usd: float = 1.0      # crypto supports small fractional orders
     slippage_bps: float = 15.0           # wider spreads on crypto
 
 RISK = RiskConfig()
